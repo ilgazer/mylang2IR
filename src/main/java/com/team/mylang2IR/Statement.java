@@ -8,14 +8,16 @@ import java.util.regex.Pattern;
 public abstract class Statement {
 
     public static Statement getNextStatement(Scanner s) {
-        if (s.hasNext(WhileStatement.PATTERN)) {
-            return WhileStatement.getNextWhileStatement(s);
-        } else if (s.hasNext(IfStatement.PATTERN)) {
-            return IfStatement.getNextIfStatement(s);
-        } else if (s.hasNext(PrintStatement.PATTERN)) {
-            return PrintStatement.getNextPrintStatement(s);
-        } else if (s.hasNext(AssignStatement.PATTERN)) {
-            return AssignStatement.getNextAssignStatement(s);
+        String nextLine = s.nextLine();
+        Matcher matcher;
+        if ((matcher = WhileStatement.PATTERN.matcher(nextLine)).matches()) {
+            return WhileStatement.getNextWhileStatement(matcher, s);
+        } else if ((matcher = IfStatement.PATTERN.matcher(nextLine)).matches()) {
+            return IfStatement.getNextIfStatement(matcher, s);
+        } else if ((matcher = PrintStatement.PATTERN.matcher(nextLine)).matches()) {
+            return PrintStatement.getNextPrintStatement(matcher, s);
+        } else if ((matcher = AssignStatement.PATTERN.matcher(nextLine)).matches()) {
+            return AssignStatement.getNextAssignStatement(matcher, s);
         }
         throw new IllegalStateException();
     }
@@ -23,7 +25,7 @@ public abstract class Statement {
     public abstract String getLLVM();
 
     public static class WhileStatement extends Statement {
-        public static final Pattern PATTERN = Pattern.compile("while\\((.+)\\)\\{");
+        public static final Pattern PATTERN = Pattern.compile("\\h*while\\h*\\((.+)\\)\\h*\\{\\h*");
         private final Expression conditional;
         private final StatementList statementList;
         
@@ -59,8 +61,7 @@ public abstract class Statement {
         	return ans;
         }
 
-        public static WhileStatement getNextWhileStatement(Scanner s) {
-            Matcher matcher = PATTERN.matcher(s.nextLine());
+        public static WhileStatement getNextWhileStatement(Matcher matcher, Scanner s) {
             if (!matcher.matches()) {
                 throw new IllegalStateException();
             }
@@ -72,7 +73,7 @@ public abstract class Statement {
     }
 
     public static class IfStatement extends Statement {
-        public static final Pattern PATTERN = Pattern.compile("if\\((.+)\\)\\{");
+        public static final Pattern PATTERN = Pattern.compile("\\h*if\\h*\\((.+)\\)\\h*\\{\\h*");
         private final Expression conditional;
         private final StatementList statementList;
         private int id;
@@ -110,8 +111,7 @@ public abstract class Statement {
             return ans;
         }
 
-        public static IfStatement getNextIfStatement(Scanner s) {
-            Matcher matcher = PATTERN.matcher(s.nextLine());
+        public static IfStatement getNextIfStatement(Matcher matcher, Scanner s) {
             if (!matcher.matches()) {
                 throw new IllegalStateException();
             }
@@ -124,7 +124,7 @@ public abstract class Statement {
     }
 
     public static class PrintStatement extends Statement {
-        public static final Pattern PATTERN = Pattern.compile("print\\((.+)\\)");
+        public static final Pattern PATTERN = Pattern.compile("\\h*print\\h*\\((.+)\\)\\h*");
         private final Expression expression;
 
         public PrintStatement(Expression expression) {
@@ -140,8 +140,7 @@ public abstract class Statement {
             return ans;
         }
 
-        public static PrintStatement getNextPrintStatement(Scanner s) {
-            Matcher matcher = PATTERN.matcher(s.nextLine());
+        public static PrintStatement getNextPrintStatement(Matcher matcher, Scanner s) {
             if (!matcher.matches()) {
                 throw new IllegalStateException();
             }
@@ -150,7 +149,7 @@ public abstract class Statement {
     }
 
     public static class AssignStatement extends Statement {
-        public static final Pattern PATTERN = Pattern.compile("([a-zA-Z][a-zA-Z0-9]*)=(.+)");
+        public static final Pattern PATTERN = Pattern.compile("\\h*([a-zA-Z][a-zA-Z0-9]*)\\h*=(.+?)\\h*");
 
         private final String variable;
         private final Expression expression;
@@ -170,9 +169,7 @@ public abstract class Statement {
             return ans;
         }
 
-        public static AssignStatement getNextAssignStatement(Scanner s) {
-            String line = s.nextLine();
-            Matcher matcher = PATTERN.matcher(line);
+        public static AssignStatement getNextAssignStatement(Matcher matcher, Scanner s) {
             if (!matcher.matches()) {
                 throw new IllegalStateException();
             }
@@ -199,7 +196,7 @@ public abstract class Statement {
 
         public static StatementList getNextStatementList(Scanner s) {
             ArrayList<Statement> statements = new ArrayList<>();
-            while (s.hasNextLine() && (!s.hasNext("}"))) {
+            while (s.hasNextLine() && (!s.hasNext("\\h*}\\h*"))) {
                 statements.add(Statement.getNextStatement(s));
             }
             return new StatementList(statements);

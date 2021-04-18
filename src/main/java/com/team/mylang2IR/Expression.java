@@ -70,7 +70,7 @@ public abstract class Expression {
                 }
                 tempStack.pop();
                 //Next token is an operator, hopefully.
-            } else {
+            } else if (!Character.isWhitespace(c)) {
                 while (!tempStack.isEmpty() && ArithmeticExpression.Operation.comparePrecedence(c, tempStack.peek()) <= 0) {
                     Expression right = resultStack.pop();
                     Expression left = resultStack.pop();
