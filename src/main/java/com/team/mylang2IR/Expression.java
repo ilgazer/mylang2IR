@@ -139,18 +139,18 @@ public abstract class Expression {
         	
         	String ans = "";
         	
-        	ans += "alloca i32* " + resultPtr + "\n";
+        	ans += resultPtr + " = alloca i32\n";
         	ans += "br label %" + cond1Name + "\n";
         	ans += cond1Name + ":\n";
         	ans += condition.getLLVM();
             String condSubResult = condition.getResult();
             String cond1Result = Expression.getNewVariable();
             ans += cond1Result + " = icmp eq i32 0, " + condSubResult + "\n";
-            ans += "br i1 label " + cond1Result + ", label %" + zeroName + ", label %" + cond2Name + "\n";
+            ans += "br i1 " + cond1Result + ", label %" + zeroName + ", label %" + cond2Name + "\n";
             ans += cond2Name + ":\n";
             String cond2Result = Expression.getNewVariable();
             ans += cond2Result + " = icmp sgt i32 0, " + condSubResult + "\n";
-            ans += "br i1 label " + cond2Result + ", label %" + posName + ", label %" + negName + "\n";
+            ans += "br i1 " + cond2Result + ", label %" + posName + ", label %" + negName + "\n";
             
             ans += zeroName + ":\n";
             ans += zero.getLLVM();
@@ -168,6 +168,8 @@ public abstract class Expression {
             ans += "br label %" + endName + "\n";
             
             ans += endName + ":\n";
+            resultVar = Expression.getNewVariable();
+            ans += resultVar + " = load i32* " + resultPtr + "\n";
             
             return ans;
         }
