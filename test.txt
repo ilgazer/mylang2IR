@@ -1,0 +1,11 @@
+n = 10
+f0 = 0
+f1 = 1
+i = 2
+while(n) {
+    t = f1
+    f1 = f0 +f1
+    print(a+b*(c*d-e)+(f+g*(h+choose(t, f0, f1, f2))))
+    f0 = t
+    n = n - 1
+}
