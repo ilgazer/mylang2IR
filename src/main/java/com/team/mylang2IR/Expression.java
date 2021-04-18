@@ -149,7 +149,7 @@ public abstract class Expression {
             ans += "br i1 label " + cond1Result + ", label %" + zeroName + ", label %" + cond2Name + "\n";
             ans += cond2Name + ":\n";
             String cond2Result = Expression.getNewVariable();
-            ans += cond2Result + " icmp sgt i32 0, " + condSubResult + "\n";
+            ans += cond2Result + " = icmp sgt i32 0, " + condSubResult + "\n";
             ans += "br i1 label " + cond2Result + ", label %" + posName + ", label %" + negName + "\n";
             
             ans += zeroName + ":\n";
