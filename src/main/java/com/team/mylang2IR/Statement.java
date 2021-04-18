@@ -161,6 +161,7 @@ public abstract class Statement {
 
         @Override
         public String getLLVM() {
+        	Statement.StatementList.addVar(variable);
         	String ans = "";
         	ans += expression.getLLVM();
         	String lhs = expression.getResult();
@@ -188,6 +189,7 @@ public abstract class Statement {
         	{
         		if(varNames.get(i).equals(s))return ;
         	}
+        	//System.out.println("NEW VARIABLE " + s + "ADDED");
         	varNames.add(s);
         }
 
@@ -209,23 +211,26 @@ public abstract class Statement {
         {
         	
         	String ans = "";
+        	String bas = "";
         	if(didInit)return ans;
         	didInit = true;
-        	ans += "; ModuleID = 'mylang2ir'\n";
-            ans += "declare i32 @printf(i8*, ...)\n";
-            ans += "@print.str = constant [4 x i8] c\"%d\\0A\\0\n";
-            ans += "define i32 @main() {\n";
+        	bas += "; ModuleID = 'mylang2ir'\n";
+            bas += "declare i32 @printf(i8*, ...)\n";
+            bas += "@print.str = constant [4 x i8] c\"%d\\0A\\00\"\n";
+            bas += "define i32 @main() {\n";
             
-            for(String s: varNames)
-            {
-            	ans += "%" + s + " = alloca i32\n";
-            	ans +=  "store i32 0, i32* %" + s + "\n";
-            }
             
             ans += getLLVM();
             ans += "ret i32 0\n";
             ans += "}\n";
-            return ans;
+            
+            for(String s: varNames)
+            {
+            	bas += "%" + s + " = alloca i32\n";
+            	bas +=  "store i32 0, i32* %" + s + "\n";
+            }
+            
+            return bas +  ans;
         }
 
         public String getLLVM() {
