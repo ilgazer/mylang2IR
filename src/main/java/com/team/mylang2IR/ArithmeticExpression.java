@@ -44,15 +44,29 @@ public class ArithmeticExpression extends Expression {
         this.leftTerm = leftTerm;
         this.rightTerm = rightTerm;
     }
-
+    
+    private String resultVar;
 
     @Override
     public String getResult() {
-        return null;
+        return resultVar;
     }
 
     @Override
     public String getLLVM() {
-        return null;
+    	String ans = "";
+        ans += leftTerm.getLLVM();
+        String lans = leftTerm.getResult();
+        ans += rightTerm.getLLVM();
+        String rans = rightTerm.getResult();
+        resultVar = Expression.getNewVariable();
+        
+        String nameOfOperation = "";
+        if(operation.sign == '*')nameOfOperation = "mul";
+        else if(operation.sign == '+')nameOfOperation = "add";
+        else if(operation.sign == '-')nameOfOperation = "sub";
+        else if(operation.sign == '/')nameOfOperation = "sdiv";
+        ans += resultVar + " = " + nameOfOperation + " i32 " + lans +  ", " + rans + "\n";
+        return ans;
     }
 }

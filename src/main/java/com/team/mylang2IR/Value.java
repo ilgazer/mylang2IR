@@ -25,12 +25,12 @@ public abstract class Value extends Expression {
 
         @Override
         public String getResult() {
-            return null;
+            return this.num;
         }
 
         @Override
         public String getLLVM() {
-            return null;
+            return "";
         }
 
         public static Number getNextNumber(Matcher matcher) {
@@ -44,17 +44,21 @@ public abstract class Value extends Expression {
         private final String var;
 
         public Variable(String var) {
+        	Statement.StatementList.addVar(var);
             this.var = var;
         }
-
+        
+        private String resultVar;
         @Override
         public String getResult() {
-            return null;
+            return resultVar;
         }
 
         @Override
         public String getLLVM() {
-            return null;
+        	resultVar = Expression.getNewVariable();
+            String ans = resultVar + " = " + "load i32* %" + this.var + "\n";
+            return ans;
         }
 
         public static Variable getNextVariable(Matcher matcher) {
