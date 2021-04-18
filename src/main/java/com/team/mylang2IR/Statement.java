@@ -179,10 +179,11 @@ public abstract class Statement {
 
     public static class StatementList {
         private final ArrayList<Statement> statements;
-        private static ArrayList<String> varNames;
+        private static ArrayList<String> varNames = null;
         
         public static void addVar(String s)
         {
+        	if(varNames == null)varNames = new ArrayList<String>();
         	for(int i = 0; i < varNames.size(); i++)
         	{
         		if(varNames.get(i).equals(s))return ;
