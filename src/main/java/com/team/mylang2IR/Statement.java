@@ -163,11 +163,11 @@ public abstract class Statement {
         public AssignStatement(String variable, Expression expression) {
             this.variable = variable;
             this.expression = expression;
+            Program.addVariable(variable);
         }
 
         @Override
         public String getLLVM() {
-            Program.addVariable(variable);
             String ans = "";
             ans += expression.getLLVM();
 

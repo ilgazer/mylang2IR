@@ -33,7 +33,6 @@ public class Program {
             result.append("%").append(s).append(" = alloca i32\n")
                     .append("store i32 0, i32* %").append(s).append("\n");
         }
-
         result.append(statementList.getLLVM())
                 .append("ret i32 0\n")
                 .append("}\n");

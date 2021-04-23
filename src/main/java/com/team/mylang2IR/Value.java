@@ -45,12 +45,12 @@ public abstract class Value extends Expression {
 
         public Variable(String var) {
             this.var = var;
+            Program.addVariable(var);
         }
 
         @Override
         public String getLLVM() {
-            Program.addVariable(this.var);
-            return resultVar + " = " + "load i32* %" + this.var + "\n";
+            return resultVar + " = " + "load i32* %" + var + "\n";
         }
 
         public static Variable getNextVariable(Matcher matcher) {
