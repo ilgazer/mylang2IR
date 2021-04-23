@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 public class Program {
 
     private static final HashSet<String> varNames = new HashSet<>();
-    public static int cnt = 0;
+    public static int tempVariableCount = 0;
     private final Statement.StatementList statementList;
 
     public Program(Statement.StatementList statementList) {
@@ -14,8 +14,8 @@ public class Program {
     }
 
     public static String getNewTempVariable() {
-        cnt++;
-        return "%t" + cnt;
+        tempVariableCount++;
+        return "%t" + tempVariableCount;
     }
 
     public static void addVariable(String s) {
@@ -25,24 +25,20 @@ public class Program {
 
     public String getLLVM() {
 
-        String ans = "";
-        StringBuilder bas = new StringBuilder();
-        bas.append("; ModuleID = 'mylang2ir'\n");
-        bas.append("declare i32 @printf(i8*, ...)\n");
-        bas.append("@print.str = constant [4 x i8] c\"%d\\0A\\00\"\n");
-        bas.append("define i32 @main() {\n");
-
-
-        ans += statementList.getLLVM();
-        ans += "ret i32 0\n";
-        ans += "}\n";
-
+        StringBuilder result = new StringBuilder("; ModuleID = 'mylang2ir'\n" +
+                "declare i32 @printf(i8*, ...)\n" +
+                "@print.str = constant [4 x i8] c\"%d\\0A\\00\"\n" +
+                "define i32 @main() {\n");
         for (String s : Program.varNames) {
-            bas.append("%").append(s).append(" = alloca i32\n");
-            bas.append("store i32 0, i32* %").append(s).append("\n");
+            result.append("%").append(s).append(" = alloca i32\n")
+                    .append("store i32 0, i32* %").append(s).append("\n");
         }
 
-        return bas + ans;
+        result.append(statementList.getLLVM())
+                .append("ret i32 0\n")
+                .append("}\n");
+
+        return result.toString();
     }
 
     public static Program getProgram(List<String> rawLines) throws InvalidSyntaxException {
