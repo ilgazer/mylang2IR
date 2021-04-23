@@ -45,19 +45,19 @@ public class Program {
         return bas + ans;
     }
 
-    public static Program getProgram(List<String> lines) throws InvalidSyntaxException {
+    public static Program getProgram(List<String> rawLines) throws InvalidSyntaxException {
 
-        Queue<String> linesQueue = lines
+        Queue<String> lines = rawLines
                 .stream()
                 .map(s -> s.replaceAll("#.*", ""))
                 .collect(Collectors.toCollection(ArrayDeque::new));
 
-        int numLines = linesQueue.size();
+        int numLines = lines.size();
 
         try {
-            return new Program(Statement.StatementList.getNextStatementList(linesQueue));
+            return new Program(Statement.StatementList.getNextStatementList(lines, true));
         } catch (IllegalStateException | NoSuchElementException | ArrayIndexOutOfBoundsException | EmptyStackException exception) {
-            throw new InvalidSyntaxException(numLines - linesQueue.size());
+            throw new InvalidSyntaxException(numLines - lines.size());
         }
     }
 

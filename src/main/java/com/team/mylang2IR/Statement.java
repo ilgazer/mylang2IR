@@ -8,12 +8,12 @@ import java.util.regex.Pattern;
 public abstract class Statement {
     public static final Pattern CURLY_BRACE_PATTERN = Pattern.compile("\\h*}\\h*");
 
-    public static Statement getNextStatement(Queue<String> lines) {
+    public static Statement getNextStatement(Queue<String> lines, boolean canHaveFlow) {
         String nextLine = lines.remove();
         Matcher matcher;
-        if ((matcher = WhileStatement.PATTERN.matcher(nextLine)).matches()) {
+        if (canHaveFlow && (matcher = WhileStatement.PATTERN.matcher(nextLine)).matches()) {
             return WhileStatement.getNextWhileStatement(matcher, lines);
-        } else if ((matcher = IfStatement.PATTERN.matcher(nextLine)).matches()) {
+        } else if (canHaveFlow && (matcher = IfStatement.PATTERN.matcher(nextLine)).matches()) {
             return IfStatement.getNextIfStatement(matcher, lines);
         } else if ((matcher = PrintStatement.PATTERN.matcher(nextLine)).matches()) {
             return PrintStatement.getNextPrintStatement(matcher);
@@ -66,7 +66,7 @@ public abstract class Statement {
 
         public static WhileStatement getNextWhileStatement(Matcher matcher, Queue<String> lines) {
             Expression condition = Expression.getExpressionFrom(matcher.group(1));
-            StatementList statementList = StatementList.getNextStatementList(lines);
+            StatementList statementList = StatementList.getNextStatementList(lines, false);
             if (!CURLY_BRACE_PATTERN.matcher(lines.remove()).matches()) {
                 throw new IllegalStateException();
             }
@@ -119,7 +119,7 @@ public abstract class Statement {
                 throw new IllegalStateException();
             }
             Expression condition = Expression.getExpressionFrom(matcher.group(1));
-            StatementList statementList = StatementList.getNextStatementList(lines);
+            StatementList statementList = StatementList.getNextStatementList(lines, false);
 
             if (!CURLY_BRACE_PATTERN.matcher(lines.remove()).matches()) {
                 throw new IllegalStateException();
@@ -190,10 +190,10 @@ public abstract class Statement {
             this.statements = statements;
         }
 
-        public static StatementList getNextStatementList(Queue<String> lines) {
+        public static StatementList getNextStatementList(Queue<String> lines, boolean canHaveFlow) {
             ArrayList<Statement> statements = new ArrayList<>();
             while (!lines.isEmpty() && !(CURLY_BRACE_PATTERN.matcher(lines.peek()).matches())) {
-                statements.add(Statement.getNextStatement(lines));
+                statements.add(Statement.getNextStatement(lines, canHaveFlow));
             }
             return new StatementList(statements);
         }
