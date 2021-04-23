@@ -38,14 +38,17 @@ public abstract class Expression {
                         i++;
                         if (chars[i] == '(') {
                             numParantheses++;
-                        } else if (chars[i] == ')') {
-                            numParantheses--;
-                        }
-                        if (chars[i] == ',' || numParantheses == 0) {
+                        } else if (numParantheses == 1 && (chars[i] == ',' || chars[i] == ')')) {
                             terms[currentNumTerms] = inputStr.substring(currentTermIndex + 1, i);
                             currentNumTerms++;
                             currentTermIndex = i;
                         }
+                        if (chars[i] == ')') {
+                            numParantheses--;
+                        }
+                    }
+                    if (currentNumTerms != 4) {
+                        throw new IllegalStateException();
                     }
                     resultStack.push(new Choose(terms));
                 } else {
@@ -119,8 +122,8 @@ public abstract class Expression {
 
         @Override
         public String getLLVM() {
-            String cond1Name = "choose" + this.id + "cond1";
-            String cond2Name = "choose" + this.id + "cond2";
+            String eq0CondName = "choose" + this.id + "cond1";
+            String gt0CondName = "choose" + this.id + "cond2";
             String zeroName = "choose" + this.id + "zero";
             String posName = "choose" + this.id + "pos";
             String negName = "choose" + this.id + "neg";
@@ -131,17 +134,20 @@ public abstract class Expression {
             String ans = "";
 
             ans += resultPtr + " = alloca i32\n";
-            ans += "br label %" + cond1Name + "\n";
-            ans += cond1Name + ":\n";
+
+            //Equals 0 condition
+            ans += "br label %" + eq0CondName + "\n";
+            ans += eq0CondName + ":\n";
             ans += condition.getLLVM();
-            String condSubResult = condition.getResult();
-            String cond1Result = Program.getNewTempVariable();
-            ans += cond1Result + " = icmp eq i32 0, " + condSubResult + "\n";
-            ans += "br i1 " + cond1Result + ", label %" + zeroName + ", label %" + cond2Name + "\n";
-            ans += cond2Name + ":\n";
-            String cond2Result = Program.getNewTempVariable();
-            ans += cond2Result + " = icmp sgt i32 0, " + condSubResult + "\n";
-            ans += "br i1 " + cond2Result + ", label %" + posName + ", label %" + negName + "\n";
+            String eq0CondResult = Program.getNewTempVariable();
+            ans += eq0CondResult + " = icmp eq i32 0, " + condition.getResult() + "\n";
+            ans += "br i1 " + eq0CondResult + ", label %" + zeroName + ", label %" + gt0CondName + "\n";
+
+            //Greater than 0 condition
+            ans += gt0CondName + ":\n";
+            String gt0CondResult = Program.getNewTempVariable();
+            ans += gt0CondResult + " = icmp sgt i32 " + condition.getResult() + ", 0\n";
+            ans += "br i1 " + gt0CondResult + ", label %" + posName + ", label %" + negName + "\n";
 
             ans += zeroName + ":\n";
             ans += zero.getLLVM();

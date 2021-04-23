@@ -1,11 +1,15 @@
-n = 101 #asjkbcsjdbv
+n = 10 #asjkbcsjdbv
 f0 = 0
 f1 = 1
 i = 2
+f = 0
 while(n) {
     t = f1
-    f1 = f0 +f1
-    print(a+b*(c*d-e)+(f+g*(h+choose(t, f0, f1, f2))))
+    f= choose(f, 0, 1, 0-1)
+    f1 = f0 + f1
+    print(1000000)
+    print(f)
+    print(choose(f, choose(f1-21, 15,16,f1), f1, 0))
     f0 = t
     n = n - 1
 }

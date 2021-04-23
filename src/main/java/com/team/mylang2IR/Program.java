@@ -1,9 +1,6 @@
 package com.team.mylang2IR;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Scanner;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Program {
@@ -55,7 +52,7 @@ public class Program {
         Scanner s = new Scanner(rawStr);
         try {
             return new Program(Statement.StatementList.getNextStatementList(s));
-        } catch (IllegalStateException | NoSuchElementException exception) {
+        } catch (IllegalStateException | NoSuchElementException | ArrayIndexOutOfBoundsException | EmptyStackException exception) {
             int i = lines.size();
             while (s.hasNextLine()) {
                 s.nextLine();
