@@ -1,20 +1,20 @@
 package com.team.mylang2IR;
 
 import java.util.ArrayList;
-import java.util.Scanner;
+import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class Statement {
     public static final Pattern CURLY_BRACE_PATTERN = Pattern.compile("\\h*}\\h*");
 
-    public static Statement getNextStatement(Scanner s) {
-        String nextLine = s.nextLine();
+    public static Statement getNextStatement(Queue<String> lines) {
+        String nextLine = lines.remove();
         Matcher matcher;
         if ((matcher = WhileStatement.PATTERN.matcher(nextLine)).matches()) {
-            return WhileStatement.getNextWhileStatement(matcher, s);
+            return WhileStatement.getNextWhileStatement(matcher, lines);
         } else if ((matcher = IfStatement.PATTERN.matcher(nextLine)).matches()) {
-            return IfStatement.getNextIfStatement(matcher, s);
+            return IfStatement.getNextIfStatement(matcher, lines);
         } else if ((matcher = PrintStatement.PATTERN.matcher(nextLine)).matches()) {
             return PrintStatement.getNextPrintStatement(matcher);
         } else if ((matcher = AssignStatement.PATTERN.matcher(nextLine)).matches()) {
@@ -64,11 +64,12 @@ public abstract class Statement {
             return ans;
         }
 
-        public static WhileStatement getNextWhileStatement(Matcher matcher, Scanner s) {
+        public static WhileStatement getNextWhileStatement(Matcher matcher, Queue<String> lines) {
             Expression condition = Expression.getExpressionFrom(matcher.group(1));
-            StatementList statementList = StatementList.getNextStatementList(s);
-            if (!CURLY_BRACE_PATTERN.matcher(s.nextLine()).matches())
+            StatementList statementList = StatementList.getNextStatementList(lines);
+            if (!CURLY_BRACE_PATTERN.matcher(lines.remove()).matches()) {
                 throw new IllegalStateException();
+            }
             return new WhileStatement(condition, statementList);
         }
     }
@@ -113,15 +114,16 @@ public abstract class Statement {
             return ans;
         }
 
-        public static IfStatement getNextIfStatement(Matcher matcher, Scanner s) {
+        public static IfStatement getNextIfStatement(Matcher matcher, Queue<String> lines) {
             if (!matcher.matches()) {
                 throw new IllegalStateException();
             }
             Expression condition = Expression.getExpressionFrom(matcher.group(1));
-            StatementList statementList = StatementList.getNextStatementList(s);
+            StatementList statementList = StatementList.getNextStatementList(lines);
 
-            if (!CURLY_BRACE_PATTERN.matcher(s.nextLine()).matches())
+            if (!CURLY_BRACE_PATTERN.matcher(lines.remove()).matches()) {
                 throw new IllegalStateException();
+            }
 
             return new IfStatement(condition, statementList);
         }
@@ -188,10 +190,10 @@ public abstract class Statement {
             this.statements = statements;
         }
 
-        public static StatementList getNextStatementList(Scanner s) {
+        public static StatementList getNextStatementList(Queue<String> lines) {
             ArrayList<Statement> statements = new ArrayList<>();
-            while (s.hasNextLine() && (!s.hasNext("\\h*}\\h*"))) {
-                statements.add(Statement.getNextStatement(s));
+            while (!lines.isEmpty() && !(CURLY_BRACE_PATTERN.matcher(lines.peek()).matches())) {
+                statements.add(Statement.getNextStatement(lines));
             }
             return new StatementList(statements);
         }

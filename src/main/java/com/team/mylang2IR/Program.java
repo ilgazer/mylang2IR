@@ -13,8 +13,7 @@ public class Program {
         this.statementList = statementList;
     }
 
-    public static String getNewTempVariable()
-    {
+    public static String getNewTempVariable() {
         cnt++;
         return "%t" + cnt;
     }
@@ -48,17 +47,17 @@ public class Program {
 
     public static Program getProgram(List<String> lines) throws InvalidSyntaxException {
 
-        String rawStr = lines.stream().map(s -> s.replaceAll("#.*", "")).collect(Collectors.joining("\n"));
-        Scanner s = new Scanner(rawStr);
+        Queue<String> linesQueue = lines
+                .stream()
+                .map(s -> s.replaceAll("#.*", ""))
+                .collect(Collectors.toCollection(ArrayDeque::new));
+
+        int numLines = linesQueue.size();
+
         try {
-            return new Program(Statement.StatementList.getNextStatementList(s));
+            return new Program(Statement.StatementList.getNextStatementList(linesQueue));
         } catch (IllegalStateException | NoSuchElementException | ArrayIndexOutOfBoundsException | EmptyStackException exception) {
-            int i = lines.size();
-            while (s.hasNextLine()) {
-                s.nextLine();
-                i--;
-            }
-            throw new InvalidSyntaxException(i);
+            throw new InvalidSyntaxException(numLines - linesQueue.size());
         }
     }
 
