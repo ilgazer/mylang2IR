@@ -47,16 +47,8 @@ public abstract class Value extends Expression {
             this.var = var;
         }
 
-        private String resultVar;
-
-        @Override
-        public String getResult() {
-            return resultVar;
-        }
-
         @Override
         public String getLLVM() {
-            resultVar = Program.getNewTempVariable();
             Program.addVariable(this.var);
             return resultVar + " = " + "load i32* %" + this.var + "\n";
         }

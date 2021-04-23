@@ -4,7 +4,11 @@ import java.util.Stack;
 
 public abstract class Expression {
 
-    public abstract String getResult();
+    protected final String resultVar = Program.getNewTempVariable();
+
+    public String getResult() {
+        return resultVar;
+    }
 
     public abstract String getLLVM();
 
@@ -113,13 +117,6 @@ public abstract class Expression {
                     Expression.getExpressionFrom(terms[2]), Expression.getExpressionFrom(terms[3]));
         }
 
-        private String resultVar;
-
-        @Override
-        public String getResult() {
-            return resultVar;
-        }
-
         @Override
         public String getLLVM() {
             String cond1Name = "choose" + this.id + "cond1";
@@ -162,7 +159,7 @@ public abstract class Expression {
             ans += "br label %" + endName + "\n";
 
             ans += endName + ":\n";
-            resultVar = Program.getNewTempVariable();
+
             //Burada pointerlı variable kullanmanın bir avantajı var mı? Sonucumuz da temporary değişken olsa?
             ans += resultVar + " = load i32* " + resultPtr + "\n";
 

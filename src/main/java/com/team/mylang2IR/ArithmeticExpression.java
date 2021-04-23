@@ -51,13 +51,6 @@ public class ArithmeticExpression extends Expression {
         this.rightTerm = rightTerm;
     }
 
-    private String resultVar;
-
-    @Override
-    public String getResult() {
-        return resultVar;
-    }
-
     @Override
     public String getLLVM() {
         String ans = "";
@@ -65,7 +58,6 @@ public class ArithmeticExpression extends Expression {
         String lans = leftTerm.getResult();
         ans += rightTerm.getLLVM();
         String rans = rightTerm.getResult();
-        resultVar = Program.getNewTempVariable();
 
         ans += resultVar + " = " + operation.llvmName + " i32 " + lans + ", " + rans + "\n";
         return ans;
