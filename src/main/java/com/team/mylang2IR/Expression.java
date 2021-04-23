@@ -3,13 +3,6 @@ package com.team.mylang2IR;
 import java.util.Stack;
 
 public abstract class Expression {
-	
-	public static int cnt = 0;
-	public static String getNewVariable()
-	{
-		cnt++;
-		return "%t" + cnt;
-	}
 
     public abstract String getResult();
 
@@ -101,8 +94,8 @@ public abstract class Expression {
         private final Expression positive;
         private final Expression zero;
         private final Expression negative;
-        
-        private int id;
+
+        private final int id;
         static int chooseCnt = 0;
 
         public Choose(Expression condition, Expression positive, Expression zero, Expression negative) {
@@ -110,7 +103,7 @@ public abstract class Expression {
             this.positive = positive;
             this.zero = zero;
             this.negative = negative;
-            
+
             chooseCnt++;
             this.id = chooseCnt;
         }
@@ -119,8 +112,9 @@ public abstract class Expression {
             this(Expression.getExpressionFrom(terms[0]), Expression.getExpressionFrom(terms[1]),
                     Expression.getExpressionFrom(terms[2]), Expression.getExpressionFrom(terms[3]));
         }
-        
+
         private String resultVar;
+
         @Override
         public String getResult() {
             return resultVar;
@@ -128,49 +122,50 @@ public abstract class Expression {
 
         @Override
         public String getLLVM() {
-        	String cond1Name = "choose" + this.id + "cond1";
-        	String cond2Name = "choose" + this.id + "cond2";
-        	String zeroName = "choose" + this.id + "zero";
-        	String posName = "choose" + this.id + "pos";
-        	String negName = "choose" + this.id + "neg";
-        	String endName = "choose" + this.id + "end";
-        	
-        	String resultPtr = "%choose" + this.id + "resultPtr";
-        	
-        	String ans = "";
-        	
-        	ans += resultPtr + " = alloca i32\n";
-        	ans += "br label %" + cond1Name + "\n";
-        	ans += cond1Name + ":\n";
-        	ans += condition.getLLVM();
+            String cond1Name = "choose" + this.id + "cond1";
+            String cond2Name = "choose" + this.id + "cond2";
+            String zeroName = "choose" + this.id + "zero";
+            String posName = "choose" + this.id + "pos";
+            String negName = "choose" + this.id + "neg";
+            String endName = "choose" + this.id + "end";
+
+            String resultPtr = "%choose" + this.id + "resultPtr";
+
+            String ans = "";
+
+            ans += resultPtr + " = alloca i32\n";
+            ans += "br label %" + cond1Name + "\n";
+            ans += cond1Name + ":\n";
+            ans += condition.getLLVM();
             String condSubResult = condition.getResult();
-            String cond1Result = Expression.getNewVariable();
+            String cond1Result = Program.getNewTempVariable();
             ans += cond1Result + " = icmp eq i32 0, " + condSubResult + "\n";
             ans += "br i1 " + cond1Result + ", label %" + zeroName + ", label %" + cond2Name + "\n";
             ans += cond2Name + ":\n";
-            String cond2Result = Expression.getNewVariable();
+            String cond2Result = Program.getNewTempVariable();
             ans += cond2Result + " = icmp sgt i32 0, " + condSubResult + "\n";
             ans += "br i1 " + cond2Result + ", label %" + posName + ", label %" + negName + "\n";
-            
+
             ans += zeroName + ":\n";
             ans += zero.getLLVM();
             ans += "store i32 " + zero.getResult() + ", i32* " + resultPtr + "\n";
             ans += "br label %" + endName + "\n";
-            
+
             ans += posName + ":\n";
             ans += positive.getLLVM();
-            ans += "store i32 " + positive.getResult() + ",i32* "+ resultPtr + "\n";
+            ans += "store i32 " + positive.getResult() + ",i32* " + resultPtr + "\n";
             ans += "br label %" + endName + "\n";
-            
+
             ans += negName + ":\n";
             ans += negative.getLLVM();
             ans += "store i32 " + negative.getResult() + ", i32* " + resultPtr + "\n";
             ans += "br label %" + endName + "\n";
-            
+
             ans += endName + ":\n";
-            resultVar = Expression.getNewVariable();
+            resultVar = Program.getNewTempVariable();
+            //Burada pointerlı variable kullanmanın bir avantajı var mı? Sonucumuz da temporary değişken olsa?
             ans += resultVar + " = load i32* " + resultPtr + "\n";
-            
+
             return ans;
         }
     }

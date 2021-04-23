@@ -6,6 +6,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class Statement {
+    public static final Pattern CURLY_BRACE_PATTERN = Pattern.compile("\\h*}\\h*");
 
     public static Statement getNextStatement(Scanner s) {
         String nextLine = s.nextLine();
@@ -15,9 +16,9 @@ public abstract class Statement {
         } else if ((matcher = IfStatement.PATTERN.matcher(nextLine)).matches()) {
             return IfStatement.getNextIfStatement(matcher, s);
         } else if ((matcher = PrintStatement.PATTERN.matcher(nextLine)).matches()) {
-            return PrintStatement.getNextPrintStatement(matcher, s);
+            return PrintStatement.getNextPrintStatement(matcher);
         } else if ((matcher = AssignStatement.PATTERN.matcher(nextLine)).matches()) {
-            return AssignStatement.getNextAssignStatement(matcher, s);
+            return AssignStatement.getNextAssignStatement(matcher);
         }
         throw new IllegalStateException();
     }
@@ -26,11 +27,13 @@ public abstract class Statement {
 
     public static class WhileStatement extends Statement {
         public static final Pattern PATTERN = Pattern.compile("\\h*while\\h*\\((.+)\\)\\h*\\{\\h*");
+
+        private static int whileCnt = 0;
+
+        private final int id;
         private final Expression conditional;
         private final StatementList statementList;
-        
-        private int id;
-        private static int whileCnt = 0;
+
         public WhileStatement(Expression conditional, StatementList statementList) {
             this.conditional = conditional;
             this.statementList = statementList;
@@ -40,74 +43,73 @@ public abstract class Statement {
 
         @Override
         public String getLLVM() {
-            
-        	String condName = "while" + id + "condition";
-        	String thenName = "while" + id + "then";
-        	String endName = "while" + id + "end";
-        	
-        	String ans = "";
-        	ans += "br label %" + condName + "\n";
-        	ans += condName + ":\n";
-        	ans += conditional.getLLVM();
-        	
-        	String realConditional = Expression.getNewVariable();
-			ans += realConditional + " = icmp ne i32 0, " + conditional.getResult() + "\n";
-        	ans += "br i1 " + realConditional + ", label %" + thenName + ", label %" + endName + "\n";
-        	ans += thenName + ":\n";
-        	ans += statementList.getLLVM();
-        	ans += "br label %" + condName + "\n";
-        	ans += endName + ":\n";
-        	
-        	return ans;
+
+            String condName = "while" + id + "condition";
+            String thenName = "while" + id + "then";
+            String endName = "while" + id + "end";
+
+            String ans = "";
+            ans += "br label %" + condName + "\n";
+            ans += condName + ":\n";
+            ans += conditional.getLLVM();
+
+            String realConditional = Program.getNewTempVariable();
+            ans += realConditional + " = icmp ne i32 0, " + conditional.getResult() + "\n";
+            ans += "br i1 " + realConditional + ", label %" + thenName + ", label %" + endName + "\n";
+            ans += thenName + ":\n";
+            ans += statementList.getLLVM();
+            ans += "br label %" + condName + "\n";
+            ans += endName + ":\n";
+
+            return ans;
         }
 
         public static WhileStatement getNextWhileStatement(Matcher matcher, Scanner s) {
-            if (!matcher.matches()) {
-                throw new IllegalStateException();
-            }
             Expression condition = Expression.getExpressionFrom(matcher.group(1));
             StatementList statementList = StatementList.getNextStatementList(s);
-            s.next("}");
+            if (!CURLY_BRACE_PATTERN.matcher(s.nextLine()).matches())
+                throw new IllegalStateException();
             return new WhileStatement(condition, statementList);
         }
     }
 
     public static class IfStatement extends Statement {
         public static final Pattern PATTERN = Pattern.compile("\\h*if\\h*\\((.+)\\)\\h*\\{\\h*");
+        private static int ifCount = 0;
+
+        private final int id;
         private final Expression conditional;
         private final StatementList statementList;
-        private int id;
-        static int ifCnt = 0;
+
         public IfStatement(Expression conditional, StatementList statementList) {
             this.conditional = conditional;
             this.statementList = statementList;
-            ifCnt++;
-            this.id = ifCnt;
+            ifCount++;
+            this.id = ifCount;
         }
 
         @Override
         public String getLLVM() {
-        	String condName = "if" + this.id + "condition";
-        	String thenName = "if" + this.id + "then";
-        	String endName = "if" + this.id + "end";
-        	
-        	String ans = "";
-        	ans += "br label %" + condName + "\n";
-        	ans += condName +":\n";
-        	ans += conditional.getLLVM();
-        	
-        	String realCondName = Expression.getNewVariable();
-        	ans += realCondName + " = " + "icmp ne i32 0, " + conditional.getResult() + "\n";
-        	
-        	ans += "br i1 " + realCondName + ", label %" + thenName + ", label %" + endName + "\n";
-        	
-        	ans += thenName +":\n";
-        	ans += statementList.getLLVM();
-        	ans += "br label %" + endName + "\n";
-        	
-        	ans += endName + ":\n";
-        	
-        	
+            String condName = "if" + this.id + "condition";
+            String thenName = "if" + this.id + "then";
+            String endName = "if" + this.id + "end";
+
+            String ans = "";
+            ans += "br label %" + condName + "\n";
+            ans += condName + ":\n";
+            ans += conditional.getLLVM();
+
+            String realCondName = Program.getNewTempVariable();
+            ans += realCondName + " = " + "icmp ne i32 0, " + conditional.getResult() + "\n";
+
+            ans += "br i1 " + realCondName + ", label %" + thenName + ", label %" + endName + "\n";
+
+            ans += thenName + ":\n";
+            ans += statementList.getLLVM();
+            ans += "br label %" + endName + "\n";
+
+            ans += endName + ":\n";
+
             return ans;
         }
 
@@ -117,7 +119,9 @@ public abstract class Statement {
             }
             Expression condition = Expression.getExpressionFrom(matcher.group(1));
             StatementList statementList = StatementList.getNextStatementList(s);
-            s.next("}");
+
+            if (!CURLY_BRACE_PATTERN.matcher(s.nextLine()).matches())
+                throw new IllegalStateException();
 
             return new IfStatement(condition, statementList);
         }
@@ -140,7 +144,7 @@ public abstract class Statement {
             return ans;
         }
 
-        public static PrintStatement getNextPrintStatement(Matcher matcher, Scanner s) {
+        public static PrintStatement getNextPrintStatement(Matcher matcher) {
             if (!matcher.matches()) {
                 throw new IllegalStateException();
             }
@@ -161,16 +165,15 @@ public abstract class Statement {
 
         @Override
         public String getLLVM() {
-        	Statement.StatementList.addVar(variable);
-        	String ans = "";
-        	ans += expression.getLLVM();
-        	String lhs = expression.getResult();
-        	
-            ans += "store i32 " + lhs + ", i32* %" + variable + "\n";
+            Program.addVariable(variable);
+            String ans = "";
+            ans += expression.getLLVM();
+
+            ans += "store i32 " + expression.getResult() + ", i32* %" + variable + "\n";
             return ans;
         }
 
-        public static AssignStatement getNextAssignStatement(Matcher matcher, Scanner s) {
+        public static AssignStatement getNextAssignStatement(Matcher matcher) {
             if (!matcher.matches()) {
                 throw new IllegalStateException();
             }
@@ -180,18 +183,6 @@ public abstract class Statement {
 
     public static class StatementList {
         private final ArrayList<Statement> statements;
-        private static ArrayList<String> varNames = null;
-        
-        public static void addVar(String s)
-        {
-        	if(varNames == null)varNames = new ArrayList<String>();
-        	for(int i = 0; i < varNames.size(); i++)
-        	{
-        		if(varNames.get(i).equals(s))return ;
-        	}
-        	//System.out.println("NEW VARIABLE " + s + "ADDED");
-        	varNames.add(s);
-        }
 
         public StatementList(ArrayList<Statement> statements) {
             this.statements = statements;
@@ -204,48 +195,14 @@ public abstract class Statement {
             }
             return new StatementList(statements);
         }
-        
-        
-        private static boolean didInit = false;
-        private String initialize()
-        {
-        	
-        	String ans = "";
-        	String bas = "";
-        	if(didInit)return ans;
-        	didInit = true;
-        	bas += "; ModuleID = 'mylang2ir'\n";
-            bas += "declare i32 @printf(i8*, ...)\n";
-            bas += "@print.str = constant [4 x i8] c\"%d\\0A\\00\"\n";
-            bas += "define i32 @main() {\n";
-            
-            
-            ans += getLLVM();
-            ans += "ret i32 0\n";
-            ans += "}\n";
-            
-            for(String s: varNames)
-            {
-            	bas += "%" + s + " = alloca i32\n";
-            	bas +=  "store i32 0, i32* %" + s + "\n";
-            }
-            
-            return bas +  ans;
-        }
 
         public String getLLVM() {
-        	
-        	if(!didInit)return initialize();
-        	
-            int n = statements.size();
-            String ans = "";
-            
-            
-            for(int i = 0;i<n;i++)
-            {
-            	ans += statements.get(i).getLLVM();
+
+            StringBuilder ans = new StringBuilder();
+            for (Statement statement : statements) {
+                ans.append(statement.getLLVM());
             }
-            return ans;
+            return ans.toString();
         }
     }
 }

@@ -46,8 +46,9 @@ public abstract class Value extends Expression {
         public Variable(String var) {
             this.var = var;
         }
-        
+
         private String resultVar;
+
         @Override
         public String getResult() {
             return resultVar;
@@ -55,10 +56,9 @@ public abstract class Value extends Expression {
 
         @Override
         public String getLLVM() {
-        	resultVar = Expression.getNewVariable();
-        	Statement.StatementList.addVar(this.var);
-            String ans = resultVar + " = " + "load i32* %" + this.var + "\n";
-            return ans;
+            resultVar = Program.getNewTempVariable();
+            Program.addVariable(this.var);
+            return resultVar + " = " + "load i32* %" + this.var + "\n";
         }
 
         public static Variable getNextVariable(Matcher matcher) {

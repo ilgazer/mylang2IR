@@ -59,7 +59,7 @@ public class ArithmeticExpression extends Expression {
         String lans = leftTerm.getResult();
         ans += rightTerm.getLLVM();
         String rans = rightTerm.getResult();
-        resultVar = Expression.getNewVariable();
+        resultVar = Program.getNewTempVariable();
         
         String nameOfOperation = "";
         if(operation.sign == '*')nameOfOperation = "mul";
