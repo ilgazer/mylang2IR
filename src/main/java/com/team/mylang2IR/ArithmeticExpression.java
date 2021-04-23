@@ -1,17 +1,29 @@
 package com.team.mylang2IR;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class ArithmeticExpression extends Expression {
     public enum Operation {
-        ADD('+', 1), SUBTRACT('-', 1),
-        MULTIPLY('*', 2), DIVIDE('/', 2),
-        DEFAULT('\n', -1);
+        ADD('+', "add", 1), SUBTRACT('-', "sub", 1),
+        MULTIPLY('*', "mul", 2), DIVIDE('/', "sdiv", 2),
+        DEFAULT('\n', "ERROR", -1);
+
+        private static final Map<Character, Operation> CHARACTER_OPERATION_MAP = new HashMap<>();
+
+        static {
+            for (Operation operation : Operation.values()) {
+                CHARACTER_OPERATION_MAP.put(operation.sign, operation);
+            }
+        }
 
         public final char sign;
-
+        public final String llvmName;
         public final int precedence;
 
-        Operation(char sign, int precedence) {
+        Operation(char sign, String llvmName, int precedence) {
             this.sign = sign;
+            this.llvmName = llvmName;
             this.precedence = precedence;
         }
 
@@ -25,14 +37,8 @@ public class ArithmeticExpression extends Expression {
         }
 
         public static Operation getOperationFrom(char sign) {
-            for (Operation value : Operation.values()) {
-                if (value.sign == sign) {
-                    return value;
-                }
-            }
-            return DEFAULT;
+            return CHARACTER_OPERATION_MAP.getOrDefault(sign, DEFAULT);
         }
-
     }
 
     private final Operation operation;
@@ -44,7 +50,7 @@ public class ArithmeticExpression extends Expression {
         this.leftTerm = leftTerm;
         this.rightTerm = rightTerm;
     }
-    
+
     private String resultVar;
 
     @Override
@@ -54,19 +60,14 @@ public class ArithmeticExpression extends Expression {
 
     @Override
     public String getLLVM() {
-    	String ans = "";
+        String ans = "";
         ans += leftTerm.getLLVM();
         String lans = leftTerm.getResult();
         ans += rightTerm.getLLVM();
         String rans = rightTerm.getResult();
         resultVar = Program.getNewTempVariable();
-        
-        String nameOfOperation = "";
-        if(operation.sign == '*')nameOfOperation = "mul";
-        else if(operation.sign == '+')nameOfOperation = "add";
-        else if(operation.sign == '-')nameOfOperation = "sub";
-        else if(operation.sign == '/')nameOfOperation = "sdiv";
-        ans += resultVar + " = " + nameOfOperation + " i32 " + lans +  ", " + rans + "\n";
+
+        ans += resultVar + " = " + operation.llvmName + " i32 " + lans + ", " + rans + "\n";
         return ans;
     }
 }
