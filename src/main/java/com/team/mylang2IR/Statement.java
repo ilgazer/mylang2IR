@@ -5,9 +5,18 @@ import java.util.Queue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Represents a statement within the program in the form of a parse tree node
+ */
 public abstract class Statement {
     public static final Pattern CURLY_BRACE_PATTERN = Pattern.compile("\\h*}\\h*");
 
+    /**
+     * Parses the next line and returns an appropriate subclass of {@link Statement}
+     * @param lines a Queue containing the lines of the program that remain unparsed
+     * @param canHaveFlow determines if the next statement can be an if or while statement
+     * @return the parse tree node that corresponds to the next statement
+     */
     public static Statement getNextStatement(Queue<String> lines, boolean canHaveFlow) {
         String nextLine = lines.remove();
         Matcher matcher;
@@ -43,7 +52,6 @@ public abstract class Statement {
 
         @Override
         public String getLLVM() {
-
             String condName = "while" + id + "condition";
             String thenName = "while" + id + "then";
             String endName = "while" + id + "end";
@@ -64,6 +72,13 @@ public abstract class Statement {
             return ans;
         }
 
+
+        /**
+         * Parses the next line and returns a parse tree node for the statement
+         * @param matcher the Regex matcher corresponding to this line and the while statement
+         * @param lines a Queue containing the lines of the program that remain unparsed
+         * @return the parse tree node that corresponds to the next statement
+         */
         public static WhileStatement getNextWhileStatement(Matcher matcher, Queue<String> lines) {
             Expression condition = Expression.getExpressionFrom(matcher.group(1));
             StatementList statementList = StatementList.getNextStatementList(lines, false);
@@ -114,6 +129,12 @@ public abstract class Statement {
             return ans;
         }
 
+        /**
+         * Parses the next line and returns a parse tree node for the if statement
+         * @param matcher the Regex matcher corresponding to this line and the if statement
+         * @param lines a Queue containing the lines of the program that remain unparsed
+         * @return the parse tree node that corresponds to the next statement
+         */
         public static IfStatement getNextIfStatement(Matcher matcher, Queue<String> lines) {
             if (!matcher.matches()) {
                 throw new IllegalStateException();
@@ -146,6 +167,11 @@ public abstract class Statement {
             return ans;
         }
 
+        /**
+         * Parses the next line and returns a parse tree node for the print statement
+         * @param matcher the Regex matcher corresponding to this line and the print statement
+         * @return the parse tree node that corresponds to the next statement
+         */
         public static PrintStatement getNextPrintStatement(Matcher matcher) {
             if (!matcher.matches()) {
                 throw new IllegalStateException();
@@ -175,6 +201,11 @@ public abstract class Statement {
             return ans;
         }
 
+        /**
+         * Parses the next line and returns a parse tree node for the assign statement
+         * @param matcher the Regex matcher corresponding to this line and the assign statement
+         * @return the parse tree node that corresponds to the next statement
+         */
         public static AssignStatement getNextAssignStatement(Matcher matcher) {
             if (!matcher.matches()) {
                 throw new IllegalStateException();
@@ -183,6 +214,9 @@ public abstract class Statement {
         }
     }
 
+    /**
+     * Represents a list of statements within the program in the form of a parse tree node
+     */
     public static class StatementList {
         private final ArrayList<Statement> statements;
 
@@ -190,6 +224,12 @@ public abstract class Statement {
             this.statements = statements;
         }
 
+        /**
+         * Parses all the lines in the current block and returns a parse tree node for the list of statements
+         * @param lines a Queue containing the lines of the program that remain unparsed
+         * @param canHaveFlow determines if the next statement can be an if or while statement
+         * @return the parse tree node that corresponds to this block's list of statements
+         */
         public static StatementList getNextStatementList(Queue<String> lines, boolean canHaveFlow) {
             ArrayList<Statement> statements = new ArrayList<>();
             while (!lines.isEmpty() && !(CURLY_BRACE_PATTERN.matcher(lines.peek()).matches())) {
