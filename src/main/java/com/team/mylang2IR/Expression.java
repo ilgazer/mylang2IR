@@ -6,12 +6,21 @@ public abstract class Expression {
 
     protected final String resultVar = Program.getNewTempVariable();
 
+    /**
+     * @return the result of the expression either as a number or as a temporary variable
+     */
     public String getResult() {
         return resultVar;
     }
 
     public abstract String getLLVM();
 
+    /**
+     * Parses the string and returns an appropriate subclass of {@link Expression}
+     *
+     * @param inputStr the expression as a string
+     * @return the parse tree node that corresponds to the expression
+     */
     public static Expression getExpressionFrom(String inputStr) {
         Stack<Character> tempStack = new Stack<>();
         Stack<Expression> resultStack = new Stack<>();
@@ -105,6 +114,12 @@ public abstract class Expression {
         private final int id;
         static int chooseCnt = 0;
 
+        /**
+         * @param condition contains the expression whose result will determine the value returned
+         * @param positive  the result of this expression will be returned if result of {@param condition} is positive
+         * @param zero      the result of this expression will be returned if result of {@param condition} is zero
+         * @param negative  the result of this expression will be returned if result of {@param condition} is negative
+         */
         public Choose(Expression condition, Expression positive, Expression zero, Expression negative) {
             this.condition = condition;
             this.positive = positive;
@@ -115,6 +130,10 @@ public abstract class Expression {
             this.id = chooseCnt;
         }
 
+        /**
+         * @param terms an array of size four that contains the four arguments of the choose function: the four
+         *              the condition, positive, zero and negative expressions
+         */
         public Choose(String[] terms) {
             this(Expression.getExpressionFrom(terms[0]), Expression.getExpressionFrom(terms[1]),
                     Expression.getExpressionFrom(terms[2]), Expression.getExpressionFrom(terms[3]));
