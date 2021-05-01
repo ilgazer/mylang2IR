@@ -34,6 +34,7 @@ public abstract class Value extends Expression {
         public Number(String num) {
             this.num = num;
         }
+
         /*
          * @return this number as a string
          */
@@ -41,7 +42,7 @@ public abstract class Value extends Expression {
         public String getResult() {
             return this.num;
         }
-        
+
         /**
          * @return an empty string
          */
@@ -52,6 +53,7 @@ public abstract class Value extends Expression {
 
         /**
          * Parses the next line and returns a parse tree node for the number
+         *
          * @param matcher the Regex matcher corresponding to the number
          * @return the parse tree node that corresponds to the number
          */
@@ -69,9 +71,10 @@ public abstract class Value extends Expression {
         private final String var;
 
         public Variable(String var) {
-            this.var = var;
+            this.var = "v" + var;
             Program.addVariable(var);
         }
+
         /**
          * @return LLVM code that loads this variable to a temporary variable
          */
@@ -82,6 +85,7 @@ public abstract class Value extends Expression {
 
         /**
          * Parses the next line and returns a parse tree node for the variable
+         *
          * @param matcher the Regex matcher corresponding to the variable
          * @return the parse tree node that corresponds to the variable
          */
