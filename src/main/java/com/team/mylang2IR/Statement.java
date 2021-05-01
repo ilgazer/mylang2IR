@@ -49,7 +49,13 @@ public abstract class Statement {
             whileCnt++;
             id = whileCnt;
         }
-
+        /**
+         * LLVM code of a while statement contains 3 parts connected with correct branchings
+         * First one is LLVM code that executes expression, find it's result and determines whether condition is equal to zero or not
+         * Second one is LLVM code of statements that should be executed while condition isn't zero
+         * Third part is end
+         * @return LLVM code of while expression (contains multiple lines.)
+         */
         @Override
         public String getLLVM() {
             String condName = "while" + id + "condition";
@@ -57,16 +63,24 @@ public abstract class Statement {
             String endName = "while" + id + "end";
 
             String ans = "";
+            
+            // branching into the while loop code
             ans += "br label %" + condName + "\n";
+            
+            // LLVM code of condition
             ans += condName + ":\n";
             ans += conditional.getLLVM();
 
             String realConditional = Program.getNewTempVariable();
             ans += realConditional + " = icmp ne i32 0, " + conditional.getResult() + "\n";
             ans += "br i1 " + realConditional + ", label %" + thenName + ", label %" + endName + "\n";
+            
+            // LLVM code of statements to be executed while condition is true
             ans += thenName + ":\n";
             ans += statementList.getLLVM();
             ans += "br label %" + condName + "\n";
+            
+            //ending
             ans += endName + ":\n";
 
             return ans;
@@ -103,7 +117,13 @@ public abstract class Statement {
             ifCount++;
             this.id = ifCount;
         }
-
+        /**
+         * LLVM code of an if statement contains 3 parts connected with correct branchings
+         * First one is LLVM code that executes expression, find it's result and determines whether condition is equal to zero or not
+         * Second one is LLVM code of statements that should be executed if condition isn't zero
+         * Third part is end
+         * @return LLVM code of if statement as a String (contains multiple lines)
+         */
         @Override
         public String getLLVM() {
             String condName = "if" + this.id + "condition";
@@ -111,7 +131,11 @@ public abstract class Statement {
             String endName = "if" + this.id + "end";
 
             String ans = "";
+            
+            //branch in to the if statement
             ans += "br label %" + condName + "\n";
+            
+            //condition of the if statement
             ans += condName + ":\n";
             ans += conditional.getLLVM();
 
@@ -119,11 +143,13 @@ public abstract class Statement {
             ans += realCondName + " = " + "icmp ne i32 0, " + conditional.getResult() + "\n";
 
             ans += "br i1 " + realCondName + ", label %" + thenName + ", label %" + endName + "\n";
-
+            
+            // things we should do if statements is not zero
             ans += thenName + ":\n";
             ans += statementList.getLLVM();
             ans += "br label %" + endName + "\n";
-
+            
+            //end label
             ans += endName + ":\n";
 
             return ans;
@@ -149,7 +175,7 @@ public abstract class Statement {
             return new IfStatement(condition, statementList);
         }
     }
-
+    
     public static class PrintStatement extends Statement {
         public static final Pattern PATTERN = Pattern.compile("\\h*print\\h*\\((.+)\\)\\h*");
         private final Expression expression;
@@ -157,7 +183,9 @@ public abstract class Statement {
         public PrintStatement(Expression expression) {
             this.expression = expression;
         }
-
+        /**
+         * @return LLVM code that printing an expression as a String (may contain multiple lines)
+         */
         @Override
         public String getLLVM() {
             String ans = "";
@@ -191,7 +219,11 @@ public abstract class Statement {
             this.expression = expression;
             Program.addVariable(variable);
         }
-
+        /**
+         * First finds LLVM code to execute expression of assignment and assigns it to a temporary variable
+         * Then finds LLVM code of assigning that temporary variable to lhs variable of assignment.
+         * @return LLVM code of assign statement
+         */
         @Override
         public String getLLVM() {
             String ans = "";
@@ -237,7 +269,10 @@ public abstract class Statement {
             }
             return new StatementList(statements);
         }
-
+        /**
+         * Finds LLVM code of all statements in this StatementList and appends them to a String.
+         * @return LLVM code of statement list as a String (may contain multiple lines.)
+         */
         public String getLLVM() {
 
             StringBuilder ans = new StringBuilder();
