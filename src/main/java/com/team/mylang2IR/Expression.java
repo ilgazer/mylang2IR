@@ -138,7 +138,18 @@ public abstract class Expression {
             this(Expression.getExpressionFrom(terms[0]), Expression.getExpressionFrom(terms[1]),
                     Expression.getExpressionFrom(terms[2]), Expression.getExpressionFrom(terms[3]));
         }
-
+        
+        /**
+         * LLVM code of a choose function has 6 parts connected with correct branchings.
+         * First one is LLVM code that checks whether the condition is zero or not.
+         * Second one is LLVM code that checks whether condition is greater than zero or not
+         * Third one is LLVM code of the second expression of choose function
+         * Fourth one is LLVM code of the third expression of choose function
+         * Fifth one is LLVM code of the fourth expression of choose function
+         * Last one is LLVM code of assigning the result to a result variable.
+         * LLVM codes of expressions are found recursively.
+         * @return Returns LLVM code of this choose function as a String. Returning String has multiple lines.
+         */
         @Override
         public String getLLVM() {
             String eq0CondName = "choose" + this.id + "cond1";
@@ -167,25 +178,28 @@ public abstract class Expression {
             String gt0CondResult = Program.getNewTempVariable();
             ans += gt0CondResult + " = icmp sgt i32 " + condition.getResult() + ", 0\n";
             ans += "br i1 " + gt0CondResult + ", label %" + posName + ", label %" + negName + "\n";
-
+            
+            // Things we should do if condition(expression1) is equal to 0
             ans += zeroName + ":\n";
             ans += zero.getLLVM();
             ans += "store i32 " + zero.getResult() + ", i32* " + resultPtr + "\n";
             ans += "br label %" + endName + "\n";
-
+            
+            // Things we should do if condition(expression1) is greater than 0
             ans += posName + ":\n";
             ans += positive.getLLVM();
             ans += "store i32 " + positive.getResult() + ",i32* " + resultPtr + "\n";
             ans += "br label %" + endName + "\n";
-
+            
+            // Things we should do if condition(expression1) is less than 0
             ans += negName + ":\n";
             ans += negative.getLLVM();
             ans += "store i32 " + negative.getResult() + ", i32* " + resultPtr + "\n";
             ans += "br label %" + endName + "\n";
-
+            
+            // ending label
             ans += endName + ":\n";
 
-            //Burada pointerlı variable kullanmanın bir avantajı var mı? Sonucumuz da temporary değişken olsa?
             ans += resultVar + " = load i32* " + resultPtr + "\n";
 
             return ans;
