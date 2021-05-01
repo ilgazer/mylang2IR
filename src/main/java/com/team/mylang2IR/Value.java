@@ -34,12 +34,17 @@ public abstract class Value extends Expression {
         public Number(String num) {
             this.num = num;
         }
-
+        /*
+         * @return this number as a string
+         */
         @Override
         public String getResult() {
             return this.num;
         }
-
+        
+        /**
+         * @return an empty string
+         */
         @Override
         public String getLLVM() {
             return "";
@@ -67,7 +72,9 @@ public abstract class Value extends Expression {
             this.var = var;
             Program.addVariable(var);
         }
-
+        /**
+         * @return LLVM code that loads this variable to a temporary variable
+         */
         @Override
         public String getLLVM() {
             return resultVar + " = " + "load i32* %" + var + "\n";
