@@ -37,7 +37,7 @@ public class Main {
     	PrintStream p = new PrintStream(new File(fileName));
 
         //TODO bir bug vardi ama ne oldugunu unuttum
-        List<String> lines = Files.readAllLines(new File("test.txt").toPath());
+        List<String> lines = Files.readAllLines(new File(args[0]).toPath());
         try {
             Program program = Program.getProgram(lines);
             p.println(program.getLLVM());
