@@ -2,6 +2,7 @@ package com.team.mylang2IR;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.file.Files;
 import java.util.List;
 
@@ -30,15 +31,18 @@ public class Main {
 		return ans;
 	}
     public static void main(String[] args) throws IOException {
+    	
+    	String fileName = args[0].substring(0,args[0].length()-2);
+    	fileName += "ll";
+    	PrintStream p = new PrintStream(new File(fileName));
 
         //TODO bir bug vardi ama ne oldugunu unuttum
         List<String> lines = Files.readAllLines(new File("test.txt").toPath());
         try {
             Program program = Program.getProgram(lines);
-            System.out.println(program.getLLVM());
+            p.println(program.getLLVM());
         } catch (InvalidSyntaxException e) {
-        	System.out.println(printSyntaxError("Line " + e.line + ": Syntax error\n"));
-          //  System.out.println("Line " + e.line + ": Syntax error");
+        	p.println(printSyntaxError("Line " + e.line + ": Syntax error\n"));
         }
 
     }
