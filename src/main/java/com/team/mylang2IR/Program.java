@@ -60,16 +60,23 @@ public class Program {
             throw new InvalidSyntaxException(numLines - lines.size());
         }
     }
-
+    /**
+     * Allocates all variables appear in input code and initializes them to zero.
+     * Then recursively finds LLVM codes of all statements in input mylang code.
+     * @return LLVM code of the all the mylang input code as a String (contains multiple lines).
+     */
     public String getLLVM() {
+    	//beginning of the LLVM code
         StringBuilder result = new StringBuilder("; ModuleID = 'mylang2ir'\n" +
                 "declare i32 @printf(i8*, ...)\n" +
                 "@print.str = constant [4 x i8] c\"%d\\0A\\00\"\n" +
                 "define i32 @main() {\n");
+        // Allocate all variables and initialize them to 0
         for (String s : Program.varNames) {
             result.append("%").append(s).append(" = alloca i32\n")
                     .append("store i32 0, i32* %").append(s).append("\n");
         }
+        // Find LLVM codes of all statements in mylang code and then do the regular end of LLVM code (like ret i32 0)
         result.append(statementList.getLLVM())
                 .append("ret i32 0\n")
                 .append("}\n");
