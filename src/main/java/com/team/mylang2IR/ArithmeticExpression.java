@@ -83,7 +83,12 @@ public class ArithmeticExpression extends Expression {
         this.leftTerm = leftTerm;
         this.rightTerm = rightTerm;
     }
-
+    
+    /**
+     * This method returns LLVM code of ArithmeticExpression instance
+     * If result of this expression is related to another sub expressions it first recursively finds LLVM codes of that sub expressions
+     * @return LLVM code of this expression in String format, returning String may have multiple lines.
+     */
     @Override
     public String getLLVM() {
         String ans = "";
