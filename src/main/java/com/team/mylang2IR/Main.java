@@ -6,6 +6,29 @@ import java.nio.file.Files;
 import java.util.List;
 
 public class Main {
+	/**
+	 * LLVM code should be printed in case there is a syntax error in input mylang code
+	 * @param syntax error message
+	 * @return LLVM code that prints syntax error message as a String (contains multiple lines)
+	 */
+	public static String printSyntaxError(String s)
+	{
+		String ans = "";
+		ans += "; ModuleID = 'mylang2ir'\n" +
+                "declare i32 @printf(i8*, ...)\n" +
+                "@print.str = constant [2 x i8] c\"%c\"\n" +
+                "define i32 @main() {\n";
+		for(int i = 0;i<s.length();i++)
+		{
+			char ch = s.charAt(i);
+			ans += "call i32 (i8*, ...)* @printf(i8* getelementptr ([2 x i8]* @print.str, i32 0, i32 0), i32 " + (+ch) + " )\n";
+		}
+		
+		// regular ending of LLVm code
+		ans += "ret i32 0\n" + "}\n";
+		
+		return ans;
+	}
     public static void main(String[] args) throws IOException {
 
         //TODO bir bug vardi ama ne oldugunu unuttum
@@ -14,7 +37,8 @@ public class Main {
             Program program = Program.getProgram(lines);
             System.out.println(program.getLLVM());
         } catch (InvalidSyntaxException e) {
-            System.out.println("Line " + e.line + ": Syntax error");
+        	System.out.println(printSyntaxError("Line " + e.line + ": Syntax error\n"));
+          //  System.out.println("Line " + e.line + ": Syntax error");
         }
 
     }
